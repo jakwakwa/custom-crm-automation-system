@@ -1,0 +1,220 @@
+// Prisma schema for Custom CRM/ATS Automation System
+// Manages People, Companies, Projects, and automated outreach sequences
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Person model - Represents contacts/individuals in the system
+model Person {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  firstName String
+  lastName  String
+  phone     String?
+  whatsapp  String?   // WhatsApp number (can be different from phone)
+  
+  // Metadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  relationships Relationship[]
+  outreachSequences OutreachSequence[]
+  messageHistory Message[]
+  
+  @@index([email])
+  @@index([createdAt])
+}
+
+// Company model - Represents organizations
+model Company {
+  id          String   @id @default(cuid())
+  name        String
+  industry    String?
+  website     String?
+  description String?   @db.Text
+  
+  // Metadata
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  relationships Relationship[]
+  projects      Project[]
+  
+  @@index([name])
+  @@index([createdAt])
+}
+
+// Project model - Represents opportunities/positions
+model Project {
+  id          String        @id @default(cuid())
+  title       String
+  description String?       @db.Text
+  status      ProjectStatus @default(OPEN)
+  companyId   String
+  
+  // Metadata
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  closedAt    DateTime?
+  
+  // Relations
+  company       Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  relationships Relationship[]
+  
+  @@index([companyId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// Relationship model - Junction table tracking Person-Company-Project relationships
+// Tracks whether a person is a client, candidate, or both
+model Relationship {
+  id        String           @id @default(cuid())
+  personId  String
+  companyId String?
+  projectId String?
+  type      RelationshipType
+  
+  // Additional context
+  notes     String?          @db.Text
+  
+  // Metadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  person    Person   @relation(fields: [personId], references: [id], onDelete: Cascade)
+  company   Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  
+  @@unique([personId, companyId, projectId, type])
+  @@index([personId])
+  @@index([companyId])
+  @@index([projectId])
+  @@index([type])
+}
+
+// OutreachSequence model - Manages automated outreach campaigns
+model OutreachSequence {
+  id          String         @id @default(cuid())
+  personId    String
+  name        String
+  status      SequenceStatus @default(ACTIVE)
+  
+  // Sequence configuration
+  currentStep Int            @default(0)
+  totalSteps  Int
+  
+  // Timing
+  nextStepAt  DateTime?      // When the next step should be executed
+  startedAt   DateTime       @default(now())
+  completedAt DateTime?
+  pausedAt    DateTime?
+  
+  // Relations
+  person      Person         @relation(fields: [personId], references: [id], onDelete: Cascade)
+  steps       SequenceStep[]
+  
+  @@index([personId])
+  @@index([status])
+  @@index([nextStepAt])
+}
+
+// SequenceStep model - Individual steps in an outreach sequence
+model SequenceStep {
+  id         String       @id @default(cuid())
+  sequenceId String
+  stepNumber Int
+  
+  // Step configuration
+  channel    MessageChannel
+  template   String       @db.Text // Message template
+  delayDays  Int          @default(0) // Days to wait before sending
+  
+  // Execution tracking
+  executed   Boolean      @default(false)
+  executedAt DateTime?
+  
+  // Relations
+  sequence   OutreachSequence @relation(fields: [sequenceId], references: [id], onDelete: Cascade)
+  
+  @@unique([sequenceId, stepNumber])
+  @@index([sequenceId])
+  @@index([executed])
+}
+
+// Message model - Tracks all sent messages for audit trail
+model Message {
+  id              String         @id @default(cuid())
+  personId        String
+  channel         MessageChannel
+  
+  // Message content
+  subject         String?        // For emails
+  body            String         @db.Text
+  
+  // Delivery tracking
+  status          MessageStatus  @default(PENDING)
+  sentAt          DateTime?
+  deliveredAt     DateTime?
+  failedAt        DateTime?
+  errorMessage    String?        @db.Text
+  
+  // External provider IDs
+  twilioMessageId String?        // Twilio message SID
+  resendMessageId String?        // Resend message ID
+  
+  // Metadata
+  createdAt       DateTime       @default(now())
+  
+  // Relations
+  person          Person         @relation(fields: [personId], references: [id], onDelete: Cascade)
+  
+  @@index([personId])
+  @@index([channel])
+  @@index([status])
+  @@index([sentAt])
+}
+
+// Enums
+enum ProjectStatus {
+  OPEN
+  IN_PROGRESS
+  CLOSED
+  ON_HOLD
+}
+
+enum RelationshipType {
+  CLIENT
+  CANDIDATE
+  BOTH
+}
+
+enum SequenceStatus {
+  ACTIVE
+  PAUSED
+  COMPLETED
+  CANCELLED
+}
+
+enum MessageChannel {
+  EMAIL
+  WHATSAPP
+  SMS
+}
+
+enum MessageStatus {
+  PENDING
+  SENT
+  DELIVERED
+  FAILED
+  BOUNCED
+}
