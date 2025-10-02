@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -234,9 +235,9 @@ export function PeopleList() {
                 )
 
                 return (
-                  <TableRow key={person.id}>
+                  <TableRow key={person.id} className="cursor-pointer hover:bg-accent/50" onClick={() => window.location.href = `/people/${person.id}`}>
                     <TableCell>
-                      <div className="flex items-center gap-3">
+                      <Link href={`/people/${person.id}`} className="flex items-center gap-3">
                         <Avatar className="size-8">
                           <AvatarFallback className="bg-primary/10 text-xs font-semibold text-primary">
                             {getInitials(person.firstName, person.lastName)}
@@ -250,7 +251,7 @@ export function PeopleList() {
                             Added {new Date(person.createdAt).toLocaleDateString()}
                           </div>
                         </div>
-                      </div>
+                      </Link>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2 text-sm">
@@ -297,7 +298,7 @@ export function PeopleList() {
                         ))}
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon">

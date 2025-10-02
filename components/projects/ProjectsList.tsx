@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -244,20 +245,20 @@ export function ProjectsList() {
                 const statusInfo = statusConfig[project.status]
 
                 return (
-                  <TableRow key={project.id}>
+                  <TableRow key={project.id} className="cursor-pointer hover:bg-accent/50" onClick={() => window.location.href = `/projects/${project.id}`}>
                     <TableCell>
-                      <div className="flex items-center gap-3">
+                      <Link href={`/projects/${project.id}`} className="flex items-center gap-3">
                         <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
                           <Briefcase className="size-5" />
                         </div>
                         <div>
                           <div className="font-medium">{project.title}</div>
-                          {project.description && (
-                            <div className="text-xs text-muted-foreground line-clamp-1">
-                              {project.description}
-                            </div>
-                          )}
+                          <div className="text-xs text-muted-foreground">
+                            {project.company.name}
+                          </div>
                         </div>
+                      </Link>
+                    </TableCell>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -283,7 +284,7 @@ export function ProjectsList() {
                         {new Date(project.createdAt).toLocaleDateString()}
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon">

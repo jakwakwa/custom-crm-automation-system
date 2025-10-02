@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -246,9 +247,9 @@ export function CompaniesList() {
                 const relationshipCount = company._count?.relationships ?? 0
 
                 return (
-                  <TableRow key={company.id}>
+                  <TableRow key={company.id} className="cursor-pointer hover:bg-accent/50" onClick={() => window.location.href = `/companies/${company.id}`}>
                     <TableCell>
-                      <div className="flex items-center gap-3">
+                      <Link href={`/companies/${company.id}`} className="flex items-center gap-3">
                         <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
                           <Building2 className="size-5" />
                         </div>
@@ -258,7 +259,7 @@ export function CompaniesList() {
                             Added {new Date(company.createdAt).toLocaleDateString()}
                           </div>
                         </div>
-                      </div>
+                      </Link>
                     </TableCell>
                     <TableCell>
                       {company.industry ? (
@@ -297,7 +298,7 @@ export function CompaniesList() {
                         {relationshipCount}
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon">
