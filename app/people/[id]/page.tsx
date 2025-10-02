@@ -3,9 +3,9 @@ import { prisma } from '@/lib/prisma'
 import { PersonDetailClient } from '@/components/people/PersonDetailClient'
 
 interface PersonDetailPageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 async function getPerson(id: string) {
@@ -44,7 +44,8 @@ async function getPerson(id: string) {
 }
 
 export default async function PersonDetailPage({ params }: PersonDetailPageProps) {
-  const person = await getPerson(params.id)
+  const { id } = await params
+  const person = await getPerson(id)
 
   if (!person) {
     notFound()

@@ -4,11 +4,12 @@ import { prisma } from '@/lib/prisma'
 // GET /api/projects/[id] - Get a single project by ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   try {
     const project = await prisma.project.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         company: {
           select: {
@@ -57,15 +58,16 @@ export async function GET(
 // PUT /api/projects/[id] - Update a project
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   try {
     const body = await request.json()
     const { title, description, status, companyId } = body
 
     // Check if project exists
     const existingProject = await prisma.project.findUnique({
-      where: { id: params.id },
+      where: { id },
     })
 
     if (!existingProject) {
@@ -77,7 +79,7 @@ export async function PUT(
 
     // Update project
     const project = await prisma.project.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         title,
         description,
@@ -114,12 +116,13 @@ export async function PUT(
 // DELETE /api/projects/[id] - Delete a project
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   try {
     // Check if project exists
     const existingProject = await prisma.project.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         _count: {
           select: {
@@ -148,7 +151,7 @@ export async function DELETE(
 
     // Delete project
     await prisma.project.delete({
-      where: { id: params.id },
+      where: { id },
     })
 
     return NextResponse.json({ success: true })

@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-// GET /api/persons/[id] - Get a single person
+// GET /api/persons/[id] - Get a single person by ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   try {
     const person = await prisma.person.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         relationships: true,
         outreachSequences: true,
@@ -36,14 +37,15 @@ export async function GET(
 // PUT /api/persons/[id] - Update a person
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   try {
     const body = await request.json()
-    const { email, firstName, lastName, phone, whatsapp } = body
+    const { firstName, lastName, email, phone, whatsapp } = body
 
     const person = await prisma.person.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         email,
         firstName,
@@ -66,11 +68,12 @@ export async function PUT(
 // DELETE /api/persons/[id] - Delete a person
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   try {
     await prisma.person.delete({
-      where: { id: params.id },
+      where: { id },
     })
 
     return NextResponse.json({ success: true })

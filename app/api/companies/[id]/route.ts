@@ -4,11 +4,12 @@ import { prisma } from '@/lib/prisma'
 // GET /api/companies/[id] - Get a single company
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   try {
     const company = await prisma.company.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         projects: {
           orderBy: { createdAt: 'desc' },
@@ -52,14 +53,15 @@ export async function GET(
 // PUT /api/companies/[id] - Update a company
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   try {
     const body = await request.json()
     const { name, industry, website, description } = body
 
     const company = await prisma.company.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         name,
         industry,
@@ -81,11 +83,12 @@ export async function PUT(
 // DELETE /api/companies/[id] - Delete a company
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   try {
     await prisma.company.delete({
-      where: { id: params.id },
+      where: { id },
     })
 
     return NextResponse.json({ success: true })

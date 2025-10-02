@@ -207,3 +207,230 @@ NEXT_PUBLIC_APP_URL       # Public URL of the application
 - Keep Prisma schema comments up to date
 - Document any rate limits or API quotas (Twilio, Resend)
 - Add integration testing patterns once established
+
+
+## Development Guidelines
+
+> **Source of Truth**: Complete rules live in [`.cursor/rules/critical-project-rules.mdc`](.cursor/rules/critical-project-rules.mdc).
+> This section provides a quick reference for key development patterns.
+
+### Next.js App Router Patterns
+
+#### Page Structure
+- **Protected pages**: Place under `app/(protected)/...` for automatic sidebar/header layout
+- **Thin pages**: Keep `page.tsx` minimal, do data fetching in Server Components
+- **Co-location**: Put `loading.tsx`, `error.tsx`, `route.ts` alongside `page.tsx`
+- **API routes**: Place handlers in `app/api/.../route.ts`
+
+#### Component Architecture
+- **Server Components first**: Default to Server Components for data fetching
+- **Client Components**: Use `"use client"` only for interactivity
+- **Data flow**: Pass data to Client Components via props only
+
+### TypeScript Best Practices
+
+#### Type Safety
+- **Explicit typing**: All functions must have explicit return types
+- **Runtime validation**: Use Zod schemas to validate API responses
+- **Prisma types**: Import from `@/lib/types.ts`, use exact schema field names
+- **Type imports**: Always use `import type` for type-only imports
+
+#### Schema Validation Example
+```typescript
+const MyDataSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: z.string().optional(),
+});
+
+type MyData = z.infer<typeof MyDataSchema>;
+```
+
+### Database & Prisma Patterns
+
+> **Schema Source**: [`.cursor/rules/schema-source-of-truth.mdc`](.cursor/rules/schema-source-of-truth.mdc)
+
+#### Schema Rules (Critical)
+- **Source of truth**: `prisma/schema.prisma` defines ALL field names - never invent new ones
+- **Field naming**: Use exact snake_case field names from schema 
+- **Relations**: Use camelCase relation names as defined
+- **Types**: Import Prisma-generated types, don't create custom interfaces in pages
+- **When unsure**: Always check `prisma/schema.prisma` directly
+
+#### Correct Query Examples
+
+
+#### Emergency Fix Protocol
+1. **Revert immediately** any change with casing mismatches
+2. **Verify names** directly in `prisma/schema.prisma`
+3. **Cross-check** working API routes under `app/api/**`
+4. **Never regenerate** Prisma Client without verifying field names
+
+#### Data Fetching
+- **Caching**: Prefer `fetch(url, { next: { revalidate: <seconds> } })`
+- **Dynamic content**: Use `import { unstable_noStore as noStore } from "next/cache"`
+- **Parallel fetching**: Use `Promise.all` for independent data
+
+### Code Scaffolds
+
+#### Server Page Template
+```typescript
+// app/(protected)/example/page.tsx
+import type { Metadata } from "next";
+import { Suspense } from "react";
+import { z } from "zod";
+import type { MyData } from "@/lib/types";
+
+export const revalidate = 3600; // ISR preferred
+
+const MyDataSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: z.string().optional(),
+});
+
+async function fetchData(): Promise<MyData[]> {
+  const res = await fetch("/api/example", { next: { revalidate } });
+  if (!res.ok) throw new Error("Failed to load");
+  const data = await res.json();
+  return z.array(MyDataSchema).parse(data) as MyData[];
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: "Example", description: "Example page" };
+}
+
+export default async function Page() {
+  const dataPromise = fetchData();
+  return (
+    <Suspense fallback={<div>Loading…</div>}>
+      <pre>{JSON.stringify(await dataPromise, null, 2)}</pre>
+    </Suspense>
+  );
+}
+```
+
+#### Client Component Template
+```typescript
+// app/(protected)/example/_components/client-component.tsx
+"use client";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import type { MyData } from "@/lib/types";
+
+type ClientProps = {
+  data: MyData[];
+  label: string;
+};
+
+export function ClientComponent({ data, label }: ClientProps) {
+  const [count, setCount] = useState(0);
+  return (
+    <div>
+      <p>{label}: {count}</p>
+      <Button onClick={() => setCount((n) => n + 1)}>Increment</Button>
+    </div>
+  );
+}
+```
+
+### Pre-commit Checklist
+
+
+- [ ] Server Components by default; Client Components only for interactivity  
+- [ ] No hardcoded interfaces in page files; types imported from `lib/types.ts`
+- [ ] Uses `<Image />` and existing shadcn/ui components
+- [ ] Co-located `loading.tsx` and `error.tsx` where applicable
+- [ ] Uses `fetch` with `revalidate` or `noStore` for dynamic content
+- [ ] Parallelizes data fetching with `Promise.all` when useful
+- [ ] `pnpm build` and `pnpm lint` pass with no errors before commit
+
+
+
+## Development Commands
+
+### Server & Development
+```warp-runnable-command
+pnpm dev
+```
+### Build Commands
+```warp-runnable-command
+pnpm build
+```
+Production build with Prisma generation
+
+## Database Commands
+
+### Prisma Operations
+
+
+
+### Data Seeding
+
+
+## Code Quality & Testing
+
+### Linting & Formatting
+
+
+
+
+## Background Jobs & Services
+
+### Inngest
+```warp-runnable-command
+pnpm inngest
+```
+Start Inngest development server for background jobs
+
+## Environment Setup
+
+### Prerequisites Check
+```warp-runnable-command
+node --version
+```
+Check Node.js version (should be v22)
+
+```warp-runnable-command
+pnpm --version
+```
+Check pnpm version
+
+### Database Status
+```warp-runnable-command
+npx prisma studio
+```
+Open Prisma Studio for database management
+
+```warp-runnable-command
+npx prisma db push
+```
+Push schema changes without migrations
+
+## Project Structure
+
+### Key Directories
+- `/app` - Next.js App Router pages and layouts
+- `/components` - Reusable React components
+- `/lib` - Utility functions and configurations
+- `/prisma` - Database schema and migrations
+- `/scripts` - Utility scripts for seeding and maintenance
+- `/public` - Static assets
+
+### Important Files
+- `package.json` - Project dependencies and scripts
+- `prisma/schema.prisma` - Database schema
+- `next.config.mjs` - Next.js configuration
+- `.env.local` - Environment variables (not in repo)
+
+
+
+
+## Tech Stack Quick Reference
+
+- **Framework**: Next.js 15 with App Router
+- **Database**: PostgreSQL with Prisma ORM
+- **Authentication**: not implemented yet
+- **Background Jobs**: Inngest
+- **Styling**: Tailwind CSS + shadcn/ui
+- **Package Manager**: pnpm

@@ -3,9 +3,9 @@ import { prisma } from '@/lib/prisma'
 import { ProjectDetailClient } from '@/components/projects/ProjectDetailClient'
 
 interface ProjectDetailPageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 async function getProject(id: string) {
@@ -52,7 +52,8 @@ async function getProject(id: string) {
 }
 
 export default async function ProjectDetailPage({ params }: ProjectDetailPageProps) {
-  const project = await getProject(params.id)
+  const { id } = await params
+  const project = await getProject(id)
 
   if (!project) {
     notFound()

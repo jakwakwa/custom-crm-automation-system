@@ -3,9 +3,9 @@ import { prisma } from '@/lib/prisma'
 import { CompanyDetailClient } from '@/components/companies/CompanyDetailClient'
 
 interface CompanyDetailPageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 async function getCompany(id: string) {
@@ -62,7 +62,8 @@ async function getCompany(id: string) {
 }
 
 export default async function CompanyDetailPage({ params }: CompanyDetailPageProps) {
-  const company = await getCompany(params.id)
+  const { id } = await params
+  const company = await getCompany(id)
 
   if (!company) {
     notFound()

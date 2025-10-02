@@ -31,7 +31,7 @@ interface ProjectFormProps {
     title: string
     description?: string | null
     status: string
-    companyId: string
+    companyId?: string
   } | null
   onSuccess?: () => void
 }

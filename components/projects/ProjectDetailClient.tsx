@@ -1,12 +1,12 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
+import { ArrowLeft, Briefcase, Building2, Calendar, Edit, Mail, Phone, Trash, Users } from 'lucide-react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, Briefcase, Building2, Users, Edit, Trash, Calendar, Mail, Phone } from 'lucide-react'
-import { toast } from 'sonner'
 
 type ProjectStatus = 'OPEN' | 'IN_PROGRESS' | 'CLOSED' | 'ON_HOLD'
 type RelationshipType = 'CLIENT' | 'CANDIDATE' | 'BOTH'
@@ -205,7 +205,7 @@ export function ProjectDetailClient({ project }: ProjectDetailClientProps) {
                       </div>
                       {rel.notes && (
                         <p className="text-sm text-muted-foreground mt-2 italic">
-                          "{rel.notes}"
+                          &quot;{rel.notes}&quot;
                         </p>
                       )}
                     </Link>
@@ -253,7 +253,7 @@ export function ProjectDetailClient({ project }: ProjectDetailClientProps) {
                       </div>
                       {rel.notes && (
                         <p className="text-sm text-muted-foreground mt-2 italic">
-                          "{rel.notes}"
+                          &quot;{rel.notes}&quot;
                         </p>
                       )}
                     </Link>

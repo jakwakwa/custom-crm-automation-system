@@ -1,23 +1,23 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import {
   ArrowLeft,
-  Mail,
-  Phone,
-  MessageSquare,
-  Building2,
   Briefcase,
-  Edit,
-  Trash,
+  Building2,
   Calendar,
+  Edit,
+  Mail,
+  MessageSquare,
+  Phone,
+  Trash,
 } from 'lucide-react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 type RelationshipType = 'CLIENT' | 'CANDIDATE' | 'BOTH'
 type ProjectStatus = 'OPEN' | 'IN_PROGRESS' | 'CLOSED' | 'ON_HOLD'
@@ -262,7 +262,7 @@ export function PersonDetailClient({ person }: PersonDetailClientProps) {
                       )}
                       {relationship.notes && (
                         <p className="text-sm text-muted-foreground mt-2 italic">
-                          "{relationship.notes}"
+                          &quot;{relationship.notes}&quot;
                         </p>
                       )}
                     </div>
@@ -327,7 +327,7 @@ export function PersonDetailClient({ person }: PersonDetailClientProps) {
                       )}
                       {relationship.notes && (
                         <p className="text-sm text-muted-foreground mt-2 italic">
-                          "{relationship.notes}"
+                          &quot;{relationship.notes}&quot;
                         </p>
                       )}
                     </div>

@@ -1,8 +1,30 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import {
+  Briefcase,
+  Building2,
+  Calendar,
+  Edit,
+  Grid3x3,
+  List,
+  Loader2,
+  MoreVertical,
+  Plus,
+  Search,
+  Trash,
+  Users,
+} from 'lucide-react'
 import Link from 'next/link'
+import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
 import {
   Select,
@@ -19,30 +41,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Badge } from '@/components/ui/badge'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import {
-  Plus,
-  Search,
-  Grid3x3,
-  List,
-  MoreVertical,
-  Edit,
-  Trash,
-  Briefcase,
-  Building2,
-  Users,
-  Loader2,
-  Calendar,
-} from 'lucide-react'
 import { ProjectCard } from './ProjectCard'
 import { ProjectForm } from './ProjectForm'
-import { toast } from 'sonner'
 
 type ViewMode = 'table' | 'grid'
 
@@ -51,7 +51,7 @@ interface Project {
   title: string
   description?: string | null
   status: 'OPEN' | 'IN_PROGRESS' | 'CLOSED' | 'ON_HOLD'
-  companyId: string
+  companyId?: string
   createdAt: Date
   closedAt?: Date | null
   company: {
@@ -259,8 +259,7 @@ export function ProjectsList() {
                         </div>
                       </Link>
                     </TableCell>
-                      </div>
-                    </TableCell>
+
                     <TableCell>
                       <div className="flex items-center gap-2 text-sm">
                         <Building2 className="size-3.5 text-muted-foreground" />
