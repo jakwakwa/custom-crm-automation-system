@@ -80,7 +80,14 @@ export function RelationshipsList() {
   const [relationships, setRelationships] = useState<Relationship[]>([])
   const [loading, setLoading] = useState(true)
   const [formOpen, setFormOpen] = useState(false)
-  const [selectedRelationship, setSelectedRelationship] = useState<any>(null)
+  const [selectedRelationship, setSelectedRelationship] = useState<{
+    id: string
+    personId: string
+    companyId: string | null
+    projectId: string | null
+    type: RelationshipType
+    notes: string | null
+  } | null>(null)
 
   // Fetch relationships from API
   const fetchRelationships = async () => {
@@ -142,7 +149,7 @@ export function RelationshipsList() {
       if (!response.ok) throw new Error('Failed to delete relationship')
       toast.success('Relationship deleted successfully')
       fetchRelationships()
-    } catch (error) {
+    } catch {
       toast.error('Failed to delete relationship')
     }
   }

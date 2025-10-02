@@ -11,26 +11,28 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Briefcase, Building2, Users, MoreVertical, Edit, Trash, Calendar } from 'lucide-react'
 
-interface ProjectCardProps {
-  project: {
+interface Project {
+  id: string
+  title: string
+  description?: string | null
+  status: 'OPEN' | 'IN_PROGRESS' | 'CLOSED' | 'ON_HOLD'
+  createdAt: Date
+  closedAt?: Date | null
+  company: {
     id: string
-    title: string
-    description?: string | null
-    status: 'OPEN' | 'IN_PROGRESS' | 'CLOSED' | 'ON_HOLD'
-    createdAt: Date
-    closedAt?: Date | null
-    company: {
-      id: string
-      name: string
-      industry?: string | null
-    }
-    _count?: {
-      relationships: number
-    }
+    name: string
+    industry?: string | null
   }
-  onEdit?: (project: any) => void
+  _count?: {
+    relationships: number
+  }
+}
+
+interface ProjectCardProps {
+  project: Project
+  onEdit?: (project: Project) => void
   onDelete?: (id: string) => void
-  onView?: (project: any) => void
+  onView?: (project: Project) => void
 }
 
 const statusConfig = {

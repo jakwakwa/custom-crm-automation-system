@@ -112,7 +112,7 @@ export function PeopleList() {
       if (!response.ok) throw new Error('Failed to delete person')
       toast.success('Person deleted successfully')
       fetchPeople()
-    } catch (error) {
+    } catch {
       toast.error('Failed to delete person')
     }
   }

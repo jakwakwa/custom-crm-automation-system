@@ -12,20 +12,22 @@ import {
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Mail, Phone, MessageSquare, MoreVertical, Edit, Trash } from 'lucide-react'
 
+interface Person {
+  id: string
+  firstName: string
+  lastName: string
+  email: string
+  phone?: string | null
+  whatsapp?: string | null
+  createdAt: Date
+  relationships: Array<{ type: string }>
+}
+
 interface PersonCardProps {
-  person: {
-    id: string
-    firstName: string
-    lastName: string
-    email: string
-    phone?: string | null
-    whatsapp?: string | null
-    createdAt: Date
-    relationships: Array<{ type: string }>
-  }
-  onEdit?: (person: any) => void
+  person: Person
+  onEdit?: (person: Person) => void
   onDelete?: (id: string) => void
-  onView?: (person: any) => void
+  onView?: (person: Person) => void
 }
 
 export function PersonCard({ person, onEdit, onDelete, onView }: PersonCardProps) {

@@ -119,7 +119,7 @@ export function CompaniesList() {
       if (!response.ok) throw new Error('Failed to delete company')
       toast.success('Company deleted successfully')
       fetchCompanies()
-    } catch (error) {
+    } catch {
       toast.error('Failed to delete company')
     }
   }

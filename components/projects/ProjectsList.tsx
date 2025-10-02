@@ -125,7 +125,7 @@ export function ProjectsList() {
       if (!response.ok) throw new Error('Failed to delete project')
       toast.success('Project deleted successfully')
       fetchProjects()
-    } catch (error) {
+    } catch {
       toast.error('Failed to delete project')
     }
   }

@@ -11,22 +11,24 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Building2, Globe, Briefcase, Users, MoreVertical, Edit, Trash, ExternalLink } from 'lucide-react'
 
-interface CompanyCardProps {
-  company: {
-    id: string
-    name: string
-    industry?: string | null
-    website?: string | null
-    description?: string | null
-    createdAt: Date
-    _count?: {
-      projects: number
-      relationships: number
-    }
+interface Company {
+  id: string
+  name: string
+  industry?: string | null
+  website?: string | null
+  description?: string | null
+  createdAt: Date
+  _count?: {
+    projects: number
+    relationships: number
   }
-  onEdit?: (company: any) => void
+}
+
+interface CompanyCardProps {
+  company: Company
+  onEdit?: (company: Company) => void
   onDelete?: (id: string) => void
-  onView?: (company: any) => void
+  onView?: (company: Company) => void
 }
 
 export function CompanyCard({ company, onEdit, onDelete, onView }: CompanyCardProps) {
