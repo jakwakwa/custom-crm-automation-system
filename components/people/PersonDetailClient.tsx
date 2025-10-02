@@ -10,6 +10,7 @@ import {
   Mail,
   MessageSquare,
   Phone,
+  Play,
   Trash,
 } from 'lucide-react'
 import Link from 'next/link'
@@ -21,6 +22,8 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { PersonForm } from './PersonForm'
+import { ActiveSequences } from './ActiveSequences'
+import { StartSequenceDialog } from './StartSequenceDialog'
 
 type RelationshipType = 'CLIENT' | 'CANDIDATE' | 'BOTH'
 type ProjectStatus = 'OPEN' | 'IN_PROGRESS' | 'CLOSED' | 'ON_HOLD'
@@ -70,6 +73,7 @@ const statusColors = {
 export function PersonDetailClient({ person }: PersonDetailClientProps) {
   const router = useRouter()
   const [editFormOpen, setEditFormOpen] = useState(false)
+  const [startSequenceOpen, setStartSequenceOpen] = useState(false)
   const fullName = `${person.firstName} ${person.lastName}`
   const initials = `${person.firstName[0]}${person.lastName[0]}`.toUpperCase()
 
@@ -82,6 +86,10 @@ export function PersonDetailClient({ person }: PersonDetailClientProps) {
   }
 
   const handleFormSuccess = () => {
+    router.refresh()
+  }
+
+  const handleSequenceUpdate = () => {
     router.refresh()
   }
 
@@ -117,6 +125,10 @@ export function PersonDetailClient({ person }: PersonDetailClientProps) {
             View and manage contact information
           </p>
         </div>
+        <Button variant="default" onClick={() => setStartSequenceOpen(true)}>
+          <Play className="mr-2 size-4" />
+          Start Sequence
+        </Button>
         <Button variant="outline" onClick={handleEdit}>
           <Edit className="mr-2 size-4" />
           Edit
@@ -217,8 +229,11 @@ export function PersonDetailClient({ person }: PersonDetailClientProps) {
           </Card>
         </div>
 
-        {/* Right Column - Relationships */}
+        {/* Right Column - Relationships & Sequences */}
         <div className="space-y-6 lg:col-span-2">
+          {/* Active Sequences */}
+          <ActiveSequences personId={person.id} onUpdate={handleSequenceUpdate} />
+
           {/* Client Relationships */}
           <Card>
             <CardHeader>
@@ -357,6 +372,15 @@ export function PersonDetailClient({ person }: PersonDetailClientProps) {
         onOpenChange={setEditFormOpen}
         person={person}
         onSuccess={handleFormSuccess}
+      />
+
+      {/* Start Sequence Dialog */}
+      <StartSequenceDialog
+        open={startSequenceOpen}
+        onOpenChange={setStartSequenceOpen}
+        personId={person.id}
+        personName={fullName}
+        onSuccess={handleSequenceUpdate}
       />
     </div>
   )

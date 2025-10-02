@@ -117,7 +117,6 @@ export function SequenceForm({ sequence, onSuccess, onCancel }: SequenceFormProp
       }
       setSteps([newStep])
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sequence])
 
   const addStep = () => {
@@ -364,14 +363,14 @@ export function SequenceForm({ sequence, onSuccess, onCancel }: SequenceFormProp
                       <div>
                         <Label>Use Message Template (Optional)</Label>
                         <Select
-                          value={step.messageTemplateId}
-                          onValueChange={(value) => handleTemplateSelect(step.tempId, value)}
+                          value={step.messageTemplateId || "__none__"}
+                          onValueChange={(value) => handleTemplateSelect(step.tempId, value === "__none__" ? "" : value)}
                         >
                           <SelectTrigger>
                             <SelectValue placeholder="Select a template or write custom message" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="">-- None (Custom Message) --</SelectItem>
+                            <SelectItem value="__none__">-- None (Custom Message) --</SelectItem>
                             {messageTemplates
                               .filter((t) => !step.channel || t.channel === step.channel)
                               .map((t) => (
