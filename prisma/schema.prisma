@@ -151,6 +151,30 @@ model SequenceStep {
   @@index([executed])
 }
 
+// MessageTemplate model - Reusable message templates for outreach
+model MessageTemplate {
+  id          String         @id @default(cuid())
+  name        String         // Template name (e.g., "Welcome Email", "Follow-up WhatsApp")
+  description String?        @db.Text
+  channel     MessageChannel // EMAIL, WHATSAPP, or SMS
+  
+  // Content
+  subject     String?        // For emails only
+  body        String         @db.Text // Template body with variables like {{firstName}}
+  
+  // Template metadata
+  category    String?        // Optional category (e.g., "Outreach", "Follow-up", "Reminder")
+  isActive    Boolean        @default(true)
+  
+  // Metadata
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  
+  @@index([channel])
+  @@index([isActive])
+  @@index([category])
+}
+
 // Message model - Tracks all sent messages for audit trail
 model Message {
   id              String         @id @default(cuid())
