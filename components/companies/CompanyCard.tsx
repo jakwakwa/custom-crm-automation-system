@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -50,12 +51,11 @@ export function CompanyCard({ company, onEdit, onDelete, onView }: CompanyCardPr
       <CardContent className="p-6">
         {/* Header with Icon and Actions */}
         <div className="mb-4 flex items-start justify-between">
-          <div
-            className="flex size-12 cursor-pointer items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors hover:bg-primary/20"
-            onClick={() => onView?.(company)}
-          >
-            <Building2 className="size-6" />
-          </div>
+          <Link href={`/companies/${company.id}`}>
+            <div className="flex size-12 cursor-pointer items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors hover:bg-primary/20">
+              <Building2 className="size-6" />
+            </div>
+          </Link>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -87,12 +87,11 @@ export function CompanyCard({ company, onEdit, onDelete, onView }: CompanyCardPr
         </div>
 
         {/* Company Name */}
-        <h3
-          className="mb-2 cursor-pointer text-lg font-semibold hover:text-primary"
-          onClick={() => onView?.(company)}
-        >
-          {company.name}
-        </h3>
+        <Link href={`/companies/${company.id}`}>
+          <h3 className="mb-2 cursor-pointer text-lg font-semibold hover:text-primary">
+            {company.name}
+          </h3>
+        </Link>
 
         {/* Industry Badge */}
         {company.industry && (

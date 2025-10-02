@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -44,11 +45,13 @@ export function PersonCard({ person, onEdit, onDelete, onView }: PersonCardProps
       <CardContent className="p-6">
         {/* Header with Avatar and Actions */}
         <div className="mb-4 flex items-start justify-between">
-          <Avatar className="size-12 cursor-pointer" onClick={() => onView?.(person)}>
-            <AvatarFallback className="bg-primary/10 text-lg font-semibold text-primary">
-              {initials}
-            </AvatarFallback>
-          </Avatar>
+          <Link href={`/people/${person.id}`}>
+            <Avatar className="size-12 cursor-pointer">
+              <AvatarFallback className="bg-primary/10 text-lg font-semibold text-primary">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
+          </Link>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -80,12 +83,11 @@ export function PersonCard({ person, onEdit, onDelete, onView }: PersonCardProps
         </div>
 
         {/* Name */}
-        <h3
-          className="mb-1 cursor-pointer text-lg font-semibold hover:text-primary"
-          onClick={() => onView?.(person)}
-        >
-          {fullName}
-        </h3>
+        <Link href={`/people/${person.id}`}>
+          <h3 className="mb-1 cursor-pointer text-lg font-semibold hover:text-primary">
+            {fullName}
+          </h3>
+        </Link>
 
         {/* Email */}
         <div className="mb-3 flex items-center gap-2 text-sm text-muted-foreground">

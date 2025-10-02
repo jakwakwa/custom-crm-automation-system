@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -51,12 +52,11 @@ export function ProjectCard({ project, onEdit, onDelete, onView }: ProjectCardPr
       <CardContent className="p-6">
         {/* Header with Icon and Actions */}
         <div className="mb-4 flex items-start justify-between">
-          <div
-            className="flex size-12 cursor-pointer items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors hover:bg-primary/20"
-            onClick={() => onView?.(project)}
-          >
-            <Briefcase className="size-6" />
-          </div>
+          <Link href={`/projects/${project.id}`}>
+            <div className="flex size-12 cursor-pointer items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors hover:bg-primary/20">
+              <Briefcase className="size-6" />
+            </div>
+          </Link>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -95,12 +95,11 @@ export function ProjectCard({ project, onEdit, onDelete, onView }: ProjectCardPr
         </div>
 
         {/* Project Title */}
-        <h3
-          className="mb-2 cursor-pointer text-lg font-semibold hover:text-primary"
-          onClick={() => onView?.(project)}
-        >
-          {project.title}
-        </h3>
+        <Link href={`/projects/${project.id}`}>
+          <h3 className="mb-2 cursor-pointer text-lg font-semibold hover:text-primary">
+            {project.title}
+          </h3>
+        </Link>
 
         {/* Company Info */}
         <div className="mb-3 flex items-center gap-2 text-sm text-muted-foreground">
