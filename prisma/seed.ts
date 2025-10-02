@@ -5,8 +5,14 @@ const prisma = new PrismaClient()
 async function main() {
   console.log('🌱 Starting database seeding...')
 
-  // Clear existing data
+  // Clear existing data (in order due to foreign keys)
   console.log('📝 Clearing existing data...')
+  await prisma.message.deleteMany()
+  await prisma.sequenceStep.deleteMany()
+  await prisma.outreachSequence.deleteMany()
+  await prisma.sequenceTemplateStep.deleteMany()
+  await prisma.sequenceTemplate.deleteMany()
+  await prisma.messageTemplate.deleteMany()
   await prisma.relationship.deleteMany()
   await prisma.project.deleteMany()
   await prisma.company.deleteMany()
@@ -440,12 +446,152 @@ async function main() {
   ])
   console.log(`✅ Created ${relationships.length} relationships`)
 
+  // Create Message Templates
+  console.log('📧 Creating message templates...')
+  const emailIntro = await prisma.messageTemplate.create({
+    data: {
+      name: 'Email - Initial Outreach',
+      description: 'First contact email for candidates',
+      channel: 'EMAIL',
+      subject: 'Exciting opportunity at {{companyName}}',
+      body: `Hi {{firstName}},
+
+I hope this message finds you well. I came across your profile and was impressed by your experience.
+
+We're currently working with {{companyName}} who has an opening that might interest you. Would you be open to a brief conversation about this opportunity?
+
+Best regards,
+Recruitment Team`,
+      category: 'Outreach',
+      isActive: true,
+    },
+  })
+
+  const whatsappFollowup = await prisma.messageTemplate.create({
+    data: {
+      name: 'WhatsApp - Quick Follow-up',
+      description: 'Quick follow-up via WhatsApp',
+      channel: 'WHATSAPP',
+      body: `Hi {{firstName}}! 👋
+
+Just following up on my previous email. Are you available for a quick chat about the opportunity I mentioned?`,
+      category: 'Follow-up',
+      isActive: true,
+    },
+  })
+
+  const emailFinal = await prisma.messageTemplate.create({
+    data: {
+      name: 'Email - Final Check-in',
+      description: 'Final attempt to connect',
+      channel: 'EMAIL',
+      subject: 'Last call: opportunity at {{companyName}}',
+      body: `Hi {{firstName}},
+
+I wanted to reach out one last time about the position at {{companyName}}. If you're not interested at this time, no worries at all!
+
+If you'd like to stay in touch for future opportunities, feel free to let me know.
+
+Best,
+Recruitment Team`,
+      category: 'Follow-up',
+      isActive: true,
+    },
+  })
+
+  console.log(`✅ Created 3 message templates`)
+
+  // Create Sequence Templates
+  console.log('🔄 Creating sequence templates...')
+  const fourDaySequence = await prisma.sequenceTemplate.create({
+    data: {
+      name: '4-Day Candidate Outreach',
+      description: 'Multi-channel outreach sequence over 4 days',
+      isActive: true,
+    },
+  })
+
+  const quickFollowup = await prisma.sequenceTemplate.create({
+    data: {
+      name: 'Quick Follow-up (2-Day)',
+      description: 'Fast follow-up sequence for hot leads',
+      isActive: true,
+    },
+  })
+
+  console.log(`✅ Created 2 sequence templates`)
+
+  // Create Sequence Template Steps
+  console.log('📝 Creating sequence template steps...')
+  // 4-Day Sequence
+  await prisma.sequenceTemplateStep.create({
+    data: {
+      sequenceTemplateId: fourDaySequence.id,
+      stepNumber: 1,
+      channel: 'EMAIL',
+      template: emailIntro.body,
+      subject: emailIntro.subject,
+      messageTemplateId: emailIntro.id,
+      delayDays: 0, // Immediate
+    },
+  })
+
+  await prisma.sequenceTemplateStep.create({
+    data: {
+      sequenceTemplateId: fourDaySequence.id,
+      stepNumber: 2,
+      channel: 'WHATSAPP',
+      template: whatsappFollowup.body,
+      messageTemplateId: whatsappFollowup.id,
+      delayDays: 2, // 2 days after start
+    },
+  })
+
+  await prisma.sequenceTemplateStep.create({
+    data: {
+      sequenceTemplateId: fourDaySequence.id,
+      stepNumber: 3,
+      channel: 'EMAIL',
+      template: emailFinal.body,
+      subject: emailFinal.subject,
+      messageTemplateId: emailFinal.id,
+      delayDays: 4, // 4 days after start
+    },
+  })
+
+  // Quick Follow-up Sequence
+  await prisma.sequenceTemplateStep.create({
+    data: {
+      sequenceTemplateId: quickFollowup.id,
+      stepNumber: 1,
+      channel: 'EMAIL',
+      template: 'Hi {{firstName}}, Quick question about the role at {{companyName}}. Are you available for a chat this week?',
+      subject: 'Quick question - {{companyName}}',
+      delayDays: 0,
+    },
+  })
+
+  await prisma.sequenceTemplateStep.create({
+    data: {
+      sequenceTemplateId: quickFollowup.id,
+      stepNumber: 2,
+      channel: 'WHATSAPP',
+      template: 'Hi {{firstName}}! Did you get a chance to see my email? Would love to connect! 😊',
+      delayDays: 1, // 1 day after start
+    },
+  })
+
+  console.log(`✅ Created 5 sequence template steps`)
+
   console.log('✨ Database seeding completed successfully!')
   console.log('\n📊 Summary:')
   console.log(`   - ${people.length} people`)
   console.log(`   - ${companies.length} companies`)
   console.log(`   - ${projects.length} projects`)
   console.log(`   - ${relationships.length} relationships`)
+  console.log(`   - 3 message templates`)
+  console.log(`   - 2 sequence templates`)
+  console.log(`   - 5 sequence template steps`)
 }
 
 main()
