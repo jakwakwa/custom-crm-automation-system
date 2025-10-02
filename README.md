@@ -14,15 +14,17 @@ A powerful CRM and Applicant Tracking System with automated multi-channel outrea
 
 ## 📌 Project Status
 
-- Database Layer: ✅ Prisma configured with comprehensive schema (Person, Company, Project, Relationship, OutreachSequence, SequenceStep, Message) and Prisma Client singleton
+- Database Layer: ✅ Prisma configured with comprehensive schema including SequenceTemplate/OutreachSequence two-tier architecture
 - State Management: ✅ Zustand store for selected person/company and UI state
 - Automation Infrastructure: ✅ Inngest client and sendOutreachMessage function; webhook at /api/inngest
 - Messaging Integration: ✅ Twilio (WhatsApp/SMS) and Resend (Email) integrated with lazy initialization; multi-channel support
 - Scheduled Automation: ✅ Vercel Cron at /api/cron/outreach (9 AM daily) with vercel.json; processes due sequences and triggers Inngest
-- Templates: ✅ Message Templates CRUD UI and API; variable insertion system
+- Message Templates: ✅ CRUD UI and API with variable substitution ({{firstName}}, {{lastName}}, etc.)
+- Sequence Templates: ✅ Complete backend API for sequence templates and steps (CRUD operations)
 - Dashboard: ✅ Recent Activity and Stats powered by /api/dashboard/activity and /api/dashboard/stats
 - Audit Trail: ✅ Messages recorded in Message table on send
-- Sequences UI: ⏳ Not implemented (builder/management screens outstanding)
+- Sequences UI: ⏳ Frontend builder/management screens not yet implemented
+- Active Sequence Management: ⏳ Applying templates to people, execution tracking UI
 - Delivery Webhooks: ⏳ Not implemented (Twilio/Resend delivery status updates)
 - Authentication: ⏳ Not implemented
 - Testing: ⏳ Not implemented
@@ -89,24 +91,45 @@ A powerful CRM and Applicant Tracking System with automated multi-channel outrea
 
 ## 📊 Database Schema
 
-The system includes these core models:
+The system uses a two-tier sequence architecture:
 
+### Core Entities
 - **Person**: Contacts with email, phone, and WhatsApp
 - **Company**: Organizations
 - **Project**: Opportunities/positions
 - **Relationship**: Links people to companies/projects as CLIENT, CANDIDATE, or BOTH
-- **OutreachSequence**: Automated communication campaigns
-- **SequenceStep**: Individual steps in a sequence
+
+### Sequence Templates (Reusable Blueprints)
+- **SequenceTemplate**: Reusable sequence definitions (e.g., "4-Day Candidate Outreach")
+- **SequenceTemplateStep**: Individual steps with channel, delay, subject, and message content
+- **MessageTemplate**: Reusable message content with variable substitution
+
+### Active Sequences (Applied to People)
+- **OutreachSequence**: Active sequence instances tied to specific people
+- **SequenceStep**: Execution tracking for individual steps in active sequences
 - **Message**: Complete audit trail of all sent messages
 
 ## 🔄 Automation Flow
 
-1. Create an `OutreachSequence` for a person
-2. Define `SequenceStep`s with channels (EMAIL, WHATSAPP, SMS) and delays
-3. Daily cron job checks for due sequences
-4. Inngest processes message sending reliably
-5. Messages are tracked in the `Message` table
-6. Sequences automatically progress or complete
+### Sequence Creation
+1. Create a `SequenceTemplate` with multiple steps (e.g., "4-Day Candidate Outreach")
+2. Define `SequenceTemplateStep`s with:
+   - Channel (EMAIL, WHATSAPP, SMS) - *LinkedIn planned for future*
+   - Delay in days (0 = immediate, 1 = next day, etc.)
+   - Message content (inline or reference a `MessageTemplate`)
+   - Subject line (for EMAIL channel)
+
+### Applying to People
+1. Apply a `SequenceTemplate` to a `Person` → creates an `OutreachSequence` instance
+2. System copies template steps to active `SequenceStep`s
+3. Calculates execution times based on start date + cumulative delays
+
+### Automated Execution
+1. Daily cron job (9 AM) checks for due sequences where `nextStepAt <= NOW()`
+2. Inngest processes message sending reliably with retries
+3. Messages are tracked in the `Message` table for audit trail
+4. Step marked as executed, next step time calculated
+5. Sequences automatically progress to next step or mark as completed
 
 ## 🌐 API Routes
 
@@ -134,12 +157,23 @@ The system includes these core models:
   - `GET /api/relationships/[id]` - Get relationship by ID
   - `PUT /api/relationships/[id]` - Update relationship
   - `DELETE /api/relationships/[id]` - Delete relationship
-- Templates
+- Message Templates
   - `GET /api/templates` - List message templates
   - `POST /api/templates` - Create template
   - `GET /api/templates/[id]` - Get template by ID
   - `PUT /api/templates/[id]` - Update template
   - `DELETE /api/templates/[id]` - Delete template
+- Sequence Templates
+  - `GET /api/sequences` - List all sequence templates with steps
+  - `POST /api/sequences` - Create sequence template with steps
+  - `GET /api/sequences/[id]` - Get sequence template with steps
+  - `PUT /api/sequences/[id]` - Update sequence metadata
+  - `DELETE /api/sequences/[id]` - Delete sequence template
+  - `GET /api/sequences/[id]/steps` - List steps for a sequence
+  - `POST /api/sequences/[id]/steps` - Add step to sequence
+  - `GET /api/sequences/[id]/steps/[stepId]` - Get single step
+  - `PUT /api/sequences/[id]/steps/[stepId]` - Update step
+  - `DELETE /api/sequences/[id]/steps/[stepId]` - Delete step
 - Automation & Dashboard
   - `GET /api/cron/outreach` - Process due outreach sequences (secured with CRON_SECRET)
   - `GET /api/dashboard/activity` - Recent activity feed
@@ -177,15 +211,39 @@ The `vercel.json` configuration automatically sets up the daily cron job.
 
 ## 📝 Next Steps
 
+### High Priority
+- [ ] **Sequences UI**: Frontend components for creating/editing sequence templates
+  - Sequence builder with step management
+  - Drag-and-drop step reordering
+  - Channel/delay/message configuration per step
+  - Template variable preview with person context
+- [ ] **Apply Sequences to People**: UI for starting sequences on person detail pages
+  - Sequence template selector
+  - Creates OutreachSequence instance
+  - Display active sequences and their progress
+- [ ] **Cron Execution Logic**: Update cron job to execute sequence steps
+  - Query due OutreachSequences
+  - Trigger Inngest for message sending
+  - Update step execution status and calculate next step time
+
+### Medium Priority
+- [ ] **Provider Webhooks**: Twilio/Resend delivery status updates
+  - Update Message.status (DELIVERED/FAILED/BOUNCED)
+  - Enrich audit trail with delivery timestamps
+- [ ] **Real Analytics**: Replace mock dashboard data
+  - Message aggregations by channel/day
+  - Delivery/failure rates, email opens/clicks
+- [ ] **LinkedIn Integration**: Add LinkedIn messaging channel
+  - LinkedIn API or third-party service integration
+  - Update MessageChannel enum
+
+### Lower Priority
 - [ ] Authentication (NextAuth.js or similar)
-- [ ] Outreach Sequences UI (builder, scheduling, status)
-- [ ] Attach Templates to SequenceSteps (subject/body mapping per channel)
-- [ ] Provider Webhooks for Delivery Status (Twilio, Resend) and update Message.status
-- [ ] Real Message Activity Charts (replace mock data) and deeper analytics/reporting
 - [ ] Roles & Permissions (multi-user)
 - [ ] Testing: unit/integration (Prisma tests, API tests, UI)
 - [ ] Rate Limits & Quotas documentation (Twilio/Resend)
 - [ ] Data seeding scripts
+- [ ] Inngest workflow tests
 
 ## 📚 Documentation
 
