@@ -5,6 +5,13 @@ import { prisma } from '@/lib/prisma'
 export async function GET() {
   try {
     const persons = await prisma.person.findMany({
+      include: {
+        relationships: {
+          select: {
+            type: true,
+          },
+        },
+      },
       orderBy: {
         createdAt: 'desc',
       },
