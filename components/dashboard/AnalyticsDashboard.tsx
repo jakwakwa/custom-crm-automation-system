@@ -1,8 +1,11 @@
 'use client'
 
+import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Users, Building2, Briefcase, Mail, TrendingUp, TrendingDown } from 'lucide-react'
+import { Users, Building2, Briefcase, Mail, TrendingUp, TrendingDown, Loader2, Clock } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
+import { formatDistanceToNow } from 'date-fns'
 
 // Mock data - replace with real data from API
 const messageData = [
@@ -57,7 +60,60 @@ function MetricCard({ title, value, change, icon, description }: MetricCardProps
   )
 }
 
+interface Activity {
+  id: string
+  type: string
+  action: string
+  details: string
+  timestamp: Date
+  link: string | null
+}
+
+interface DashboardStats {
+  totalPeople: number
+  totalCompanies: number
+  activeProjects: number
+  messagesSent: number
+  changes: {
+    people: number
+    companies: number
+    projects: number
+    messages: number
+  }
+}
+
 export function AnalyticsDashboard() {
+  const [activities, setActivities] = useState<Activity[]>([])
+  const [stats, setStats] = useState<DashboardStats | null>(null)
+  const [loadingActivities, setLoadingActivities] = useState(true)
+  const [loadingStats, setLoadingStats] = useState(true)
+
+  useEffect(() => {
+    // Fetch recent activities
+    fetch('/api/dashboard/activity')
+      .then((res) => res.json())
+      .then((data) => {
+        setActivities(data.activities || [])
+        setLoadingActivities(false)
+      })
+      .catch((error) => {
+        console.error('Failed to load activities:', error)
+        setLoadingActivities(false)
+      })
+
+    // Fetch dashboard stats
+    fetch('/api/dashboard/stats')
+      .then((res) => res.json())
+      .then((data) => {
+        setStats(data.stats || null)
+        setLoadingStats(false)
+      })
+      .catch((error) => {
+        console.error('Failed to load stats:', error)
+        setLoadingStats(false)
+      })
+  }, [])
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -70,34 +126,50 @@ export function AnalyticsDashboard() {
 
       {/* Metrics Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <MetricCard
-          title="Total People"
-          value="2,847"
-          change={12.5}
-          icon={<Users className="size-4" />}
-          description="from last month"
-        />
-        <MetricCard
-          title="Companies"
-          value="584"
-          change={8.2}
-          icon={<Building2 className="size-4" />}
-          description="from last month"
-        />
-        <MetricCard
-          title="Active Projects"
-          value="127"
-          change={-3.1}
-          icon={<Briefcase className="size-4" />}
-          description="from last month"
-        />
-        <MetricCard
-          title="Messages Sent"
-          value="18,492"
-          change={23.7}
-          icon={<Mail className="size-4" />}
-          description="from last week"
-        />
+        {loadingStats ? (
+          // Loading skeleton
+          Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Loading...</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Loader2 className="size-6 animate-spin text-muted-foreground" />
+              </CardContent>
+            </Card>
+          ))
+        ) : stats ? (
+          <>
+            <MetricCard
+              title="Total People"
+              value={stats.totalPeople.toLocaleString()}
+              change={stats.changes.people}
+              icon={<Users className="size-4" />}
+              description="from last month"
+            />
+            <MetricCard
+              title="Companies"
+              value={stats.totalCompanies.toLocaleString()}
+              change={stats.changes.companies}
+              icon={<Building2 className="size-4" />}
+              description="from last month"
+            />
+            <MetricCard
+              title="Active Projects"
+              value={stats.activeProjects.toLocaleString()}
+              change={stats.changes.projects}
+              icon={<Briefcase className="size-4" />}
+              description="from last month"
+            />
+            <MetricCard
+              title="Messages Sent"
+              value={stats.messagesSent.toLocaleString()}
+              change={stats.changes.messages}
+              icon={<Mail className="size-4" />}
+              description="from last week"
+            />
+          </>
+        ) : null}
       </div>
 
       {/* Charts Grid */}
@@ -183,41 +255,42 @@ export function AnalyticsDashboard() {
           <CardDescription>Latest updates from your CRM system</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {[
-              {
-                action: 'New person added',
-                details: 'John Doe (john@example.com)',
-                time: '2 minutes ago',
-              },
-              {
-                action: 'Sequence completed',
-                details: 'Welcome Series for Jane Smith',
-                time: '15 minutes ago',
-              },
-              {
-                action: 'Message sent',
-                details: 'WhatsApp message to Mike Johnson',
-                time: '1 hour ago',
-              },
-              {
-                action: 'Project created',
-                details: 'Senior Developer position at TechCorp',
-                time: '3 hours ago',
-              },
-            ].map((activity, index) => (
-              <div
-                key={index}
-                className="flex items-start justify-between border-b pb-4 last:border-0 last:pb-0"
-              >
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">{activity.action}</p>
-                  <p className="text-sm text-muted-foreground">{activity.details}</p>
-                </div>
-                <span className="text-xs text-muted-foreground">{activity.time}</span>
-              </div>
-            ))}
-          </div>
+          {loadingActivities ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="size-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : activities.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <Clock className="size-12 text-muted-foreground mb-2" />
+              <p className="text-sm text-muted-foreground">
+                No recent activity yet. Start by adding people, companies, or projects.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {activities.map((activity) => {
+                const content = (
+                  <div className="flex items-start justify-between border-b pb-4 last:border-0 last:pb-0">
+                    <div className="space-y-1 flex-1">
+                      <p className="text-sm font-medium">{activity.action}</p>
+                      <p className="text-sm text-muted-foreground">{activity.details}</p>
+                    </div>
+                    <span className="text-xs text-muted-foreground whitespace-nowrap ml-4">
+                      {formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true })}
+                    </span>
+                  </div>
+                )
+
+                return activity.link ? (
+                  <Link key={activity.id} href={activity.link} className="block hover:bg-accent/50 -mx-4 px-4 rounded transition-colors">
+                    {content}
+                  </Link>
+                ) : (
+                  <div key={activity.id}>{content}</div>
+                )
+              })}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

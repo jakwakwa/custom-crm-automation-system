@@ -3,14 +3,20 @@ import { prisma } from '@/lib/prisma'
 import twilio from 'twilio'
 import { Resend } from 'resend'
 
-// Initialize messaging clients
-const twilioClient = process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN
-  ? twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN)
-  : null
+// Lazy initialization functions for messaging clients
+const getTwilioClient = () => {
+  if (!process.env.TWILIO_ACCOUNT_SID || !process.env.TWILIO_AUTH_TOKEN) {
+    return null
+  }
+  return twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN)
+}
 
-const resendClient = process.env.RESEND_API_KEY
-  ? new Resend(process.env.RESEND_API_KEY)
-  : null
+const getResendClient = () => {
+  if (!process.env.RESEND_API_KEY) {
+    return null
+  }
+  return new Resend(process.env.RESEND_API_KEY)
+}
 
 // Inngest function to send outreach messages
 export const sendOutreachMessage = inngest.createFunction(
@@ -33,7 +39,8 @@ export const sendOutreachMessage = inngest.createFunction(
     // Send message based on channel
     const result = await step.run('send-message', async () => {
       switch (channel) {
-        case 'EMAIL':
+        case 'EMAIL': {
+          const resendClient = getResendClient()
           if (!resendClient) {
             throw new Error('Resend client not configured')
           }
@@ -44,8 +51,10 @@ export const sendOutreachMessage = inngest.createFunction(
             html: body,
           })
           return { provider: 'resend', messageId: emailResult.data?.id }
+        }
 
-        case 'WHATSAPP':
+        case 'WHATSAPP': {
+          const twilioClient = getTwilioClient()
           if (!twilioClient || !person.whatsapp) {
             throw new Error('Twilio client not configured or WhatsApp number missing')
           }
@@ -55,8 +64,10 @@ export const sendOutreachMessage = inngest.createFunction(
             body,
           })
           return { provider: 'twilio', messageId: whatsappResult.sid }
+        }
 
-        case 'SMS':
+        case 'SMS': {
+          const twilioClient = getTwilioClient()
           if (!twilioClient || !person.phone) {
             throw new Error('Twilio client not configured or phone number missing')
           }
@@ -66,6 +77,7 @@ export const sendOutreachMessage = inngest.createFunction(
             body,
           })
           return { provider: 'twilio', messageId: smsResult.sid }
+        }
 
         default:
           throw new Error(`Unsupported channel: ${channel}`)

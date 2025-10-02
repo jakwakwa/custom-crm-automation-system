@@ -102,12 +102,53 @@ model Relationship {
   @@index([type])
 }
 
-// OutreachSequence model - Manages automated outreach campaigns
+// SequenceTemplate model - Reusable sequence definitions (templates)
+model SequenceTemplate {
+  id          String   @id @default(cuid())
+  name        String   // Template name (e.g., "Candidate Outreach", "Client Follow-up")
+  description String?  @db.Text
+  isActive    Boolean  @default(true)
+  
+  // Metadata
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  steps                SequenceTemplateStep[]
+  outreachSequences    OutreachSequence[]
+  
+  @@index([isActive])
+  @@index([createdAt])
+}
+
+// SequenceTemplateStep model - Steps in a sequence template
+model SequenceTemplateStep {
+  id                String       @id @default(cuid())
+  sequenceTemplateId String
+  stepNumber        Int
+  
+  // Step configuration
+  channel           MessageChannel
+  template          String       @db.Text // Message template (body)
+  subject           String?                      // Email subject (EMAIL channel only)
+  messageTemplateId String?                      // Optional reference to MessageTemplate
+  delayDays         Int          @default(0)     // Days to wait before sending
+  
+  // Relations
+  sequenceTemplate SequenceTemplate @relation(fields: [sequenceTemplateId], references: [id], onDelete: Cascade)
+  messageTemplate  MessageTemplate? @relation(fields: [messageTemplateId], references: [id], onDelete: SetNull)
+  
+  @@unique([sequenceTemplateId, stepNumber])
+  @@index([sequenceTemplateId])
+  @@index([messageTemplateId])
+}
+
+// OutreachSequence model - Active sequence instances for specific people
 model OutreachSequence {
-  id          String         @id @default(cuid())
-  personId    String
-  name        String
-  status      SequenceStatus @default(ACTIVE)
+  id                 String         @id @default(cuid())
+  personId           String
+  sequenceTemplateId String?        // Reference to the template used (optional)
+  status             SequenceStatus @default(ACTIVE)
   
   // Sequence configuration
   currentStep Int            @default(0)
@@ -120,35 +161,41 @@ model OutreachSequence {
   pausedAt    DateTime?
   
   // Relations
-  person      Person         @relation(fields: [personId], references: [id], onDelete: Cascade)
-  steps       SequenceStep[]
+  person           Person            @relation(fields: [personId], references: [id], onDelete: Cascade)
+  sequenceTemplate SequenceTemplate? @relation(fields: [sequenceTemplateId], references: [id], onDelete: SetNull)
+  steps            SequenceStep[]
   
   @@index([personId])
+  @@index([sequenceTemplateId])
   @@index([status])
   @@index([nextStepAt])
 }
 
-// SequenceStep model - Individual steps in an outreach sequence
+// SequenceStep model - Individual steps in an active outreach sequence
 model SequenceStep {
-  id         String       @id @default(cuid())
-  sequenceId String
-  stepNumber Int
+  id                String       @id @default(cuid())
+  sequenceId        String
+  stepNumber        Int
   
   // Step configuration
-  channel    MessageChannel
-  template   String       @db.Text // Message template
-  delayDays  Int          @default(0) // Days to wait before sending
+  channel           MessageChannel
+  template          String       @db.Text // Message template (body)
+  subject           String?                      // Email subject (EMAIL channel only)
+  messageTemplateId String?                      // Optional reference to MessageTemplate
+  delayDays         Int          @default(0)     // Days to wait before sending
   
   // Execution tracking
   executed   Boolean      @default(false)
   executedAt DateTime?
   
   // Relations
-  sequence   OutreachSequence @relation(fields: [sequenceId], references: [id], onDelete: Cascade)
+  sequence        OutreachSequence @relation(fields: [sequenceId], references: [id], onDelete: Cascade)
+  messageTemplate MessageTemplate? @relation(fields: [messageTemplateId], references: [id], onDelete: SetNull)
   
   @@unique([sequenceId, stepNumber])
   @@index([sequenceId])
   @@index([executed])
+  @@index([messageTemplateId])
 }
 
 // MessageTemplate model - Reusable message templates for outreach
@@ -169,6 +216,10 @@ model MessageTemplate {
   // Metadata
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
+  
+  // Relations
+  sequenceTemplateSteps SequenceTemplateStep[]
+  sequenceSteps         SequenceStep[]
   
   @@index([channel])
   @@index([isActive])
@@ -233,6 +284,7 @@ enum MessageChannel {
   EMAIL
   WHATSAPP
   SMS
+  // LINKEDIN // TODO: Add LinkedIn integration (requires LinkedIn API or third-party service)
 }
 
 enum MessageStatus {

@@ -12,6 +12,21 @@ A powerful CRM and Applicant Tracking System with automated multi-channel outrea
 - **Reliable Delivery**: Inngest ensures message delivery with retries
 - **Audit Trail**: Complete message history tracking
 
+## 📌 Project Status
+
+- Database Layer: ✅ Prisma configured with comprehensive schema (Person, Company, Project, Relationship, OutreachSequence, SequenceStep, Message) and Prisma Client singleton
+- State Management: ✅ Zustand store for selected person/company and UI state
+- Automation Infrastructure: ✅ Inngest client and sendOutreachMessage function; webhook at /api/inngest
+- Messaging Integration: ✅ Twilio (WhatsApp/SMS) and Resend (Email) integrated with lazy initialization; multi-channel support
+- Scheduled Automation: ✅ Vercel Cron at /api/cron/outreach (9 AM daily) with vercel.json; processes due sequences and triggers Inngest
+- Templates: ✅ Message Templates CRUD UI and API; variable insertion system
+- Dashboard: ✅ Recent Activity and Stats powered by /api/dashboard/activity and /api/dashboard/stats
+- Audit Trail: ✅ Messages recorded in Message table on send
+- Sequences UI: ⏳ Not implemented (builder/management screens outstanding)
+- Delivery Webhooks: ⏳ Not implemented (Twilio/Resend delivery status updates)
+- Authentication: ⏳ Not implemented
+- Testing: ⏳ Not implemented
+
 ## 🛠️ Tech Stack
 
 - **Frontend**: Next.js 15 (App Router), React 19, TypeScript, Tailwind CSS
@@ -95,10 +110,41 @@ The system includes these core models:
 
 ## 🌐 API Routes
 
-- `POST /api/persons` - Create a new person
-- `GET /api/persons` - List all persons
-- `GET /api/cron/outreach` - Process due outreach sequences (secured with CRON_SECRET)
-- `POST /api/inngest` - Inngest webhook endpoint
+- Persons
+  - `GET /api/persons` - List people
+  - `POST /api/persons` - Create person
+  - `GET /api/persons/[id]` - Get person by ID
+  - `PUT /api/persons/[id]` - Update person
+  - `DELETE /api/persons/[id]` - Delete person
+- Companies
+  - `GET /api/companies` - List companies
+  - `POST /api/companies` - Create company
+  - `GET /api/companies/[id]` - Get company by ID
+  - `PUT /api/companies/[id]` - Update company
+  - `DELETE /api/companies/[id]` - Delete company
+- Projects
+  - `GET /api/projects` - List projects
+  - `POST /api/projects` - Create project
+  - `GET /api/projects/[id]` - Get project by ID
+  - `PUT /api/projects/[id]` - Update project
+  - `DELETE /api/projects/[id]` - Delete project
+- Relationships
+  - `GET /api/relationships` - List relationships
+  - `POST /api/relationships` - Create relationship
+  - `GET /api/relationships/[id]` - Get relationship by ID
+  - `PUT /api/relationships/[id]` - Update relationship
+  - `DELETE /api/relationships/[id]` - Delete relationship
+- Templates
+  - `GET /api/templates` - List message templates
+  - `POST /api/templates` - Create template
+  - `GET /api/templates/[id]` - Get template by ID
+  - `PUT /api/templates/[id]` - Update template
+  - `DELETE /api/templates/[id]` - Delete template
+- Automation & Dashboard
+  - `GET /api/cron/outreach` - Process due outreach sequences (secured with CRON_SECRET)
+  - `GET /api/dashboard/activity` - Recent activity feed
+  - `GET /api/dashboard/stats` - Dashboard statistics
+  - `GET|POST|PUT /api/inngest` - Inngest webhook endpoint
 
 ## 🧪 Development Tools
 
@@ -131,13 +177,15 @@ The `vercel.json` configuration automatically sets up the daily cron job.
 
 ## 📝 Next Steps
 
-- [ ] Add authentication (NextAuth.js recommended)
-- [ ] Build UI for managing persons, companies, and projects
-- [ ] Create sequence builder interface
-- [ ] Add analytics and reporting
-- [ ] Implement message templates system
-- [ ] Add webhook handlers for delivery status updates
-- [ ] Create company and project API routes
+- [ ] Authentication (NextAuth.js or similar)
+- [ ] Outreach Sequences UI (builder, scheduling, status)
+- [ ] Attach Templates to SequenceSteps (subject/body mapping per channel)
+- [ ] Provider Webhooks for Delivery Status (Twilio, Resend) and update Message.status
+- [ ] Real Message Activity Charts (replace mock data) and deeper analytics/reporting
+- [ ] Roles & Permissions (multi-user)
+- [ ] Testing: unit/integration (Prisma tests, API tests, UI)
+- [ ] Rate Limits & Quotas documentation (Twilio/Resend)
+- [ ] Data seeding scripts
 
 ## 📚 Documentation
 

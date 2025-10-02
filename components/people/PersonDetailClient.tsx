@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import {
   ArrowLeft,
   Briefcase,
@@ -14,10 +15,12 @@ import {
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
+import { formatDateReadable } from '@/utils/date'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { PersonForm } from './PersonForm'
 
 type RelationshipType = 'CLIENT' | 'CANDIDATE' | 'BOTH'
 type ProjectStatus = 'OPEN' | 'IN_PROGRESS' | 'CLOSED' | 'ON_HOLD'
@@ -66,12 +69,21 @@ const statusColors = {
 
 export function PersonDetailClient({ person }: PersonDetailClientProps) {
   const router = useRouter()
+  const [editFormOpen, setEditFormOpen] = useState(false)
   const fullName = `${person.firstName} ${person.lastName}`
   const initials = `${person.firstName[0]}${person.lastName[0]}`.toUpperCase()
 
   // Group relationships by type
   const clientRelationships = person.relationships.filter((r) => r.type === 'CLIENT' || r.type === 'BOTH')
   const candidateRelationships = person.relationships.filter((r) => r.type === 'CANDIDATE' || r.type === 'BOTH')
+
+  const handleEdit = () => {
+    setEditFormOpen(true)
+  }
+
+  const handleFormSuccess = () => {
+    router.refresh()
+  }
 
   const handleDelete = async () => {
     if (!confirm('Are you sure you want to delete this person? This will also delete all associated relationships.')) {
@@ -105,7 +117,7 @@ export function PersonDetailClient({ person }: PersonDetailClientProps) {
             View and manage contact information
           </p>
         </div>
-        <Button variant="outline" onClick={() => router.push(`/people`)}>
+        <Button variant="outline" onClick={handleEdit}>
           <Edit className="mr-2 size-4" />
           Edit
         </Button>
@@ -190,7 +202,7 @@ export function PersonDetailClient({ person }: PersonDetailClientProps) {
                   <Calendar className="size-3" />
                   <span>Added</span>
                 </div>
-                <p className="text-sm">{new Date(person.createdAt).toLocaleDateString()}</p>
+                <p className="text-sm">{formatDateReadable(person.createdAt)}</p>
               </div>
               {person.updatedAt && person.updatedAt.getTime() !== person.createdAt.getTime() && (
                 <div>
@@ -198,7 +210,7 @@ export function PersonDetailClient({ person }: PersonDetailClientProps) {
                     <Calendar className="size-3" />
                     <span>Last Updated</span>
                   </div>
-                  <p className="text-sm">{new Date(person.updatedAt).toLocaleDateString()}</p>
+                  <p className="text-sm">{formatDateReadable(person.updatedAt)}</p>
                 </div>
               )}
             </CardContent>
@@ -231,7 +243,7 @@ export function PersonDetailClient({ person }: PersonDetailClientProps) {
                           </Badge>
                         </div>
                         <span className="text-xs text-muted-foreground">
-                          {new Date(relationship.createdAt).toLocaleDateString()}
+                          {formatDateReadable(relationship.createdAt)}
                         </span>
                       </div>
                       {relationship.company && (
@@ -296,7 +308,7 @@ export function PersonDetailClient({ person }: PersonDetailClientProps) {
                           </Badge>
                         </div>
                         <span className="text-xs text-muted-foreground">
-                          {new Date(relationship.createdAt).toLocaleDateString()}
+                          {formatDateReadable(relationship.createdAt)}
                         </span>
                       </div>
                       {relationship.company && (
@@ -338,6 +350,14 @@ export function PersonDetailClient({ person }: PersonDetailClientProps) {
           </Card>
         </div>
       </div>
+
+      {/* Edit Form Dialog */}
+      <PersonForm
+        open={editFormOpen}
+        onOpenChange={setEditFormOpen}
+        person={person}
+        onSuccess={handleFormSuccess}
+      />
     </div>
   )
 }

@@ -1,6 +1,7 @@
 'use client'
 
 import { User, Building2, FolderOpen, Eye, Pencil, Trash2, Users } from 'lucide-react'
+import { formatDateReadable } from '@/utils/date'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -89,7 +90,7 @@ export function RelationshipCard({ relationship, onView, onEdit, onDelete }: Rel
         )}
 
         <div className="text-xs text-muted-foreground pt-2 border-t">
-          Added {new Date(relationship.createdAt).toLocaleDateString()}
+          Added {formatDateReadable(relationship.createdAt)}
         </div>
       </CardContent>
 

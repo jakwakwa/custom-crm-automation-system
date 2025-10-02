@@ -3,7 +3,18 @@
 This file provides guidance to WARP (warp.dev) when working with code in this repository.
 
 ## Project Overview
-A custom CRM/ATS (Customer Relationship Management / Applicant Tracking System) with automated outreach sequences via WhatsApp and email. The system manages relationships between People, Companies, and Projects while automating timed communication sequences.
+A custom CRM/ATS (Customer Relationship Management / Applicant Tracking System) with automated outreach sequences via WhatsApp, SMS, and email. The system manages relationships between People, Companies, and Projects while automating timed communication sequences.
+
+### Automated Outreach Sequences
+The core feature allows creating multi-step, multi-channel outreach sequences:
+- **Example**: Day 1 (WhatsApp) → Day 2 (Email) → Day 3 (WhatsApp) → Day 7 (Email)
+- **Channels Supported**: Email, WhatsApp, SMS
+- **Future Enhancement**: LinkedIn messaging (requires LinkedIn API or third-party integration)
+- **How It Works**:
+  1. Create a **SequenceTemplate** with multiple steps and timing delays
+  2. Apply the template to a **Person** to create an active **OutreachSequence**
+  3. Daily cron job checks which steps need execution
+  4. Inngest workflows send messages via Twilio (WhatsApp/SMS) or Resend (Email)
 
 ## Tech Stack
 - **Frontend**: Next.js (App Router), React, TypeScript
@@ -21,6 +32,12 @@ Core entities managed via Prisma:
 - **Company**: Organizations
 - **Project**: Opportunities/positions being tracked
 - **Relationship**: Junction table tracking whether a Person is a client, candidate, or both
+- **SequenceTemplate**: Reusable outreach sequence definitions (e.g., "4-Day Candidate Outreach")
+- **SequenceTemplateStep**: Individual steps in a template with channel, delay, and message content
+- **OutreachSequence**: Active sequence instances applied to specific people
+- **SequenceStep**: Execution tracking for individual steps in active sequences
+- **MessageTemplate**: Reusable message templates with variable substitution ({{firstName}}, etc.)
+- **Message**: Audit trail of all sent messages
 
 All database interactions use Prisma ORM for type-safe queries against Supabase PostgreSQL.
 
@@ -166,8 +183,9 @@ npm run format
 - Delegate actual work to Inngest workflows for reliability
 
 ### Messaging Integration
-- Twilio for WhatsApp: Use message templates, handle delivery status
-- Resend for Email: Use email templates, track open/click rates
+- Twilio for WhatsApp & SMS: Use message templates; handle delivery status (webhooks TBD)
+- Resend for Email: Use email templates; track open/click rates (webhooks TBD)
+- Lazy initialize providers to avoid build failures without credentials
 - Store message history in database for audit trail
 
 ## Environment Variables Required
@@ -176,29 +194,41 @@ DATABASE_URL              # Supabase PostgreSQL connection string
 TWILIO_ACCOUNT_SID        # Twilio account identifier
 TWILIO_AUTH_TOKEN         # Twilio authentication token
 TWILIO_WHATSAPP_NUMBER    # Twilio WhatsApp-enabled phone number
+TWILIO_PHONE_NUMBER       # Twilio SMS-enabled phone number
 RESEND_API_KEY            # Resend email service API key
+RESEND_FROM_EMAIL         # Default from email address (e.g. no-reply@domain)
 INNGEST_EVENT_KEY         # Inngest event authentication key
 INNGEST_SIGNING_KEY       # Inngest webhook signing key
+CRON_SECRET               # Secret token for securing cron endpoints
 NEXT_PUBLIC_APP_URL       # Public URL of the application
 ```
 
-## Project Structure (when initialized)
+## Project Structure (current)
 ```
-/prisma
-  schema.prisma           # Database schema definition
-  /migrations             # Migration history
-/src
-  /app                    # Next.js App Router pages and layouts
-    /api                  # API route handlers
-      /inngest            # Inngest webhook endpoint
-      /cron               # Cron job endpoints
-  /components             # React components
-  /lib
-    /prisma.ts            # Prisma Client singleton
-    /inngest.ts           # Inngest client configuration
-  /stores                 # Zustand state stores
-  /types                  # TypeScript type definitions
-  /utils                  # Utility functions
+/app                     # Next.js App Router pages and layouts
+  /api                   # API route handlers
+    /inngest             # Inngest webhook endpoint
+    /cron                # Cron job endpoints
+    /dashboard           # Dashboard endpoints (activity, stats)
+    /persons             # Person CRUD
+    /companies           # Company CRUD
+    /projects            # Project CRUD
+    /relationships       # Relationship CRUD
+    /templates           # Message Template CRUD
+/components             # React components
+  /dashboard            # Dashboard UI
+  /people               # People UI
+  /companies            # Companies UI
+  /projects             # Projects UI
+  /relationships        # Relationships UI
+  /templates            # Templates UI
+/lib                    # Shared libs
+  prisma.ts             # Prisma Client singleton
+  inngest.ts            # Inngest client configuration
+/prisma                 # Database schema and migrations
+/stores                 # Zustand state stores
+/utils                  # Utilities (date formatting)
+/inngest                # Inngest functions (sendOutreachMessage)
 ```
 
 ## Notes for Future Development
@@ -207,6 +237,15 @@ NEXT_PUBLIC_APP_URL       # Public URL of the application
 - Keep Prisma schema comments up to date
 - Document any rate limits or API quotas (Twilio, Resend)
 - Add integration testing patterns once established
+
+### Current Status & Outstanding Work
+- Templates: Implemented CRUD and variable insertion (UI + API)
+- Dashboard: Recent Activity and Stats backed by API
+- Cron & Inngest: Daily sequence processing triggers message sends
+- Sequences UI: NOT IMPLEMENTED (builder, management, attach templates to steps)
+- Delivery Webhooks: NOT IMPLEMENTED (Twilio status callbacks, Resend webhooks)
+- Auth: NOT IMPLEMENTED
+- Testing: NOT IMPLEMENTED
 
 
 ## Development Guidelines

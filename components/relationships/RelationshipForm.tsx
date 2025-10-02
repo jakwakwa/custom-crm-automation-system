@@ -71,14 +71,35 @@ export function RelationshipForm({
   const [projects, setProjects] = useState<Project[]>([])
   
   const [formData, setFormData] = useState({
-    personId: relationship?.personId || '',
-    companyId: relationship?.companyId || '',
-    projectId: relationship?.projectId || '',
-    type: relationship?.type || ('CLIENT' as RelationshipType),
-    notes: relationship?.notes || '',
+    personId: '',
+    companyId: '',
+    projectId: '',
+    type: 'CLIENT' as RelationshipType,
+    notes: '',
   })
 
   const isEditing = !!relationship
+
+  // Update form data when relationship prop changes
+  useEffect(() => {
+    if (relationship) {
+      setFormData({
+        personId: relationship.personId || '',
+        companyId: relationship.companyId || '',
+        projectId: relationship.projectId || '',
+        type: relationship.type || 'CLIENT',
+        notes: relationship.notes || '',
+      })
+    } else {
+      setFormData({
+        personId: '',
+        companyId: '',
+        projectId: '',
+        type: 'CLIENT',
+        notes: '',
+      })
+    }
+  }, [relationship])
 
   // Fetch people, companies, and projects
   useEffect(() => {

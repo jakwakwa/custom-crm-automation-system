@@ -1,12 +1,15 @@
 'use client'
 
+import { useState } from 'react'
 import { ArrowLeft, Briefcase, Building2, Calendar, Edit, Mail, Phone, Trash, Users } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
+import { formatDateReadable } from '@/utils/date'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { ProjectForm } from './ProjectForm'
 
 type ProjectStatus = 'OPEN' | 'IN_PROGRESS' | 'CLOSED' | 'ON_HOLD'
 type RelationshipType = 'CLIENT' | 'CANDIDATE' | 'BOTH'
@@ -59,9 +62,18 @@ const typeColors = {
 
 export function ProjectDetailClient({ project }: ProjectDetailClientProps) {
   const router = useRouter()
+  const [editFormOpen, setEditFormOpen] = useState(false)
 
   const clients = project.relationships.filter((r) => r.type === 'CLIENT' || r.type === 'BOTH')
   const candidates = project.relationships.filter((r) => r.type === 'CANDIDATE' || r.type === 'BOTH')
+
+  const handleEdit = () => {
+    setEditFormOpen(true)
+  }
+
+  const handleFormSuccess = () => {
+    router.refresh()
+  }
 
   const handleDelete = async () => {
     if (!confirm('Are you sure you want to delete this project?')) return
@@ -89,7 +101,7 @@ export function ProjectDetailClient({ project }: ProjectDetailClientProps) {
           <h1 className="text-3xl font-bold tracking-tight">Project Details</h1>
           <p className="text-muted-foreground">View project information and candidates</p>
         </div>
-        <Button variant="outline" onClick={() => router.push(`/projects`)}>
+        <Button variant="outline" onClick={handleEdit}>
           <Edit className="mr-2 size-4" />
           Edit
         </Button>
@@ -149,7 +161,7 @@ export function ProjectDetailClient({ project }: ProjectDetailClientProps) {
                   <Calendar className="size-3" />
                   <span>Created</span>
                 </div>
-                <p className="text-sm">{new Date(project.createdAt).toLocaleDateString()}</p>
+                <p className="text-sm">{formatDateReadable(project.createdAt)}</p>
               </div>
               {project.closedAt && (
                 <div>
@@ -157,7 +169,7 @@ export function ProjectDetailClient({ project }: ProjectDetailClientProps) {
                     <Calendar className="size-3" />
                     <span>Closed</span>
                   </div>
-                  <p className="text-sm">{new Date(project.closedAt).toLocaleDateString()}</p>
+                  <p className="text-sm">{formatDateReadable(project.closedAt)}</p>
                 </div>
               )}
             </CardContent>
@@ -264,6 +276,20 @@ export function ProjectDetailClient({ project }: ProjectDetailClientProps) {
           )}
         </div>
       </div>
+
+      {/* Edit Form Dialog */}
+      <ProjectForm
+        open={editFormOpen}
+        onOpenChange={setEditFormOpen}
+        project={{
+          id: project.id,
+          title: project.title,
+          description: project.description,
+          status: project.status,
+          companyId: project.company.id,
+        }}
+        onSuccess={handleFormSuccess}
+      />
     </div>
   )
 }

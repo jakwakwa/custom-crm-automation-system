@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { formatDateReadable } from '@/utils/date'
 import {
   Select,
   SelectContent,
@@ -248,7 +249,7 @@ export function PeopleList() {
                             {person.firstName} {person.lastName}
                           </div>
                           <div className="text-xs text-muted-foreground">
-                            Added {new Date(person.createdAt).toLocaleDateString()}
+                            Added {formatDateReadable(person.createdAt)}
                           </div>
                         </div>
                       </Link>

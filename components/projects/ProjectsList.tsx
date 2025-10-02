@@ -17,6 +17,7 @@ import {
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
+import { formatDateReadable } from '@/utils/date'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -280,7 +281,7 @@ export function ProjectsList() {
                     <TableCell>
                       <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                         <Calendar className="size-3.5" />
-                        {new Date(project.createdAt).toLocaleDateString()}
+                        {formatDateReadable(project.createdAt)}
                       </div>
                     </TableCell>
                     <TableCell onClick={(e) => e.stopPropagation()}>

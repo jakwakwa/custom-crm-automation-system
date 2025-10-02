@@ -47,13 +47,32 @@ export function ProjectForm({ open, onOpenChange, project, onSuccess }: ProjectF
   const [loading, setLoading] = useState(false)
   const [companies, setCompanies] = useState<Array<{ id: string; name: string }>>([])
   const [formData, setFormData] = useState({
-    title: project?.title || '',
-    description: project?.description || '',
-    status: project?.status || 'OPEN',
-    companyId: project?.companyId || '',
+    title: '',
+    description: '',
+    status: 'OPEN',
+    companyId: '',
   })
 
   const isEditing = !!project
+
+  // Update form data when project prop changes
+  useEffect(() => {
+    if (project) {
+      setFormData({
+        title: project.title || '',
+        description: project.description || '',
+        status: project.status || 'OPEN',
+        companyId: project.companyId || '',
+      })
+    } else {
+      setFormData({
+        title: '',
+        description: '',
+        status: 'OPEN',
+        companyId: '',
+      })
+    }
+  }, [project])
 
   // Fetch companies for dropdown
   useEffect(() => {

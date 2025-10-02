@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -32,14 +32,35 @@ interface PersonFormProps {
 export function PersonForm({ open, onOpenChange, person, onSuccess }: PersonFormProps) {
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
-    firstName: person?.firstName || '',
-    lastName: person?.lastName || '',
-    email: person?.email || '',
-    phone: person?.phone || '',
-    whatsapp: person?.whatsapp || '',
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    whatsapp: '',
   })
 
   const isEditing = !!person
+
+  // Update form data when person prop changes
+  useEffect(() => {
+    if (person) {
+      setFormData({
+        firstName: person.firstName || '',
+        lastName: person.lastName || '',
+        email: person.email || '',
+        phone: person.phone || '',
+        whatsapp: person.whatsapp || '',
+      })
+    } else {
+      setFormData({
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+        whatsapp: '',
+      })
+    }
+  }, [person])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

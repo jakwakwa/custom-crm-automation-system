@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -32,13 +32,32 @@ interface CompanyFormProps {
 export function CompanyForm({ open, onOpenChange, company, onSuccess }: CompanyFormProps) {
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
-    name: company?.name || '',
-    industry: company?.industry || '',
-    website: company?.website || '',
-    description: company?.description || '',
+    name: '',
+    industry: '',
+    website: '',
+    description: '',
   })
 
   const isEditing = !!company
+
+  // Update form data when company prop changes
+  useEffect(() => {
+    if (company) {
+      setFormData({
+        name: company.name || '',
+        industry: company.industry || '',
+        website: company.website || '',
+        description: company.description || '',
+      })
+    } else {
+      setFormData({
+        name: '',
+        industry: '',
+        website: '',
+        description: '',
+      })
+    }
+  }, [company])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

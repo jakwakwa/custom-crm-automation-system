@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { formatDateReadable } from '@/utils/date'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -133,7 +134,7 @@ export function CompanyCard({ company, onEdit, onDelete, onView }: CompanyCardPr
       </CardContent>
 
       <CardFooter className="border-t bg-muted/30 px-6 py-3 text-xs text-muted-foreground">
-        Added {new Date(company.createdAt).toLocaleDateString()}
+        Added {formatDateReadable(company.createdAt)}
       </CardFooter>
     </Card>
   )

@@ -1,12 +1,15 @@
 'use client'
 
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { formatDateReadable } from '@/utils/date'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { ArrowLeft, Building2, Globe, Briefcase, Users, Edit, Trash, Calendar, ExternalLink } from 'lucide-react'
 import { toast } from 'sonner'
+import { CompanyForm } from './CompanyForm'
 
 type ProjectStatus = 'OPEN' | 'IN_PROGRESS' | 'CLOSED' | 'ON_HOLD'
 type RelationshipType = 'CLIENT' | 'CANDIDATE' | 'BOTH'
@@ -65,6 +68,15 @@ const typeColors = {
 
 export function CompanyDetailClient({ company }: CompanyDetailClientProps) {
   const router = useRouter()
+  const [editFormOpen, setEditFormOpen] = useState(false)
+
+  const handleEdit = () => {
+    setEditFormOpen(true)
+  }
+
+  const handleFormSuccess = () => {
+    router.refresh()
+  }
 
   const handleDelete = async () => {
     if (!confirm('Are you sure you want to delete this company?')) return
@@ -89,7 +101,7 @@ export function CompanyDetailClient({ company }: CompanyDetailClientProps) {
           <h1 className="text-3xl font-bold tracking-tight">Company Details</h1>
           <p className="text-muted-foreground">View company information and projects</p>
         </div>
-        <Button variant="outline" onClick={() => router.push(`/companies`)}>
+        <Button variant="outline" onClick={handleEdit}>
           <Edit className="mr-2 size-4" />
           Edit
         </Button>
@@ -150,7 +162,7 @@ export function CompanyDetailClient({ company }: CompanyDetailClientProps) {
                   <Calendar className="size-3" />
                   <span>Added</span>
                 </div>
-                <p className="text-sm">{new Date(company.createdAt).toLocaleDateString()}</p>
+                <p className="text-sm">{formatDateReadable(company.createdAt)}</p>
               </div>
             </CardContent>
           </Card>
@@ -184,7 +196,7 @@ export function CompanyDetailClient({ company }: CompanyDetailClientProps) {
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
                         <span>{project._count.relationships} candidates</span>
                         <span>•</span>
-                        <span>{new Date(project.createdAt).toLocaleDateString()}</span>
+                        <span>{formatDateReadable(project.createdAt)}</span>
                       </div>
                     </Link>
                   ))}
@@ -231,6 +243,14 @@ export function CompanyDetailClient({ company }: CompanyDetailClientProps) {
           </Card>
         </div>
       </div>
+
+      {/* Edit Form Dialog */}
+      <CompanyForm
+        open={editFormOpen}
+        onOpenChange={setEditFormOpen}
+        company={company}
+        onSuccess={handleFormSuccess}
+      />
     </div>
   )
 }

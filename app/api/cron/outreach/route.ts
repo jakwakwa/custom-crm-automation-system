@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
             stepId: currentStep.id,
             channel: currentStep.channel,
             body: currentStep.template,
-            subject: undefined, // You can add subject logic here
+            subject: currentStep.subject || undefined,
           },
         })
 

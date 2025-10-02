@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { formatDateReadable } from '@/utils/date'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -123,14 +124,14 @@ export function ProjectCard({ project, onEdit, onDelete, onView }: ProjectCardPr
           {project.closedAt && (
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <Calendar className="size-3.5" />
-              <span>Closed {new Date(project.closedAt).toLocaleDateString()}</span>
+              <span>Closed {formatDateReadable(project.closedAt)}</span>
             </div>
           )}
         </div>
       </CardContent>
 
       <CardFooter className="border-t bg-muted/30 px-6 py-3 text-xs text-muted-foreground">
-        Created {new Date(project.createdAt).toLocaleDateString()}
+        Created {formatDateReadable(project.createdAt)}
       </CardFooter>
     </Card>
   )

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { formatDateReadable } from '@/utils/date'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -315,7 +316,7 @@ export function RelationshipsList() {
                   </TableCell>
                   <TableCell>
                     <div className="text-sm text-muted-foreground">
-                      {new Date(relationship.createdAt).toLocaleDateString()}
+                      {formatDateReadable(relationship.createdAt)}
                     </div>
                   </TableCell>
                   <TableCell>
