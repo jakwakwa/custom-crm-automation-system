@@ -1,0 +1,298 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import Link from 'next/link'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Users, Building2, Briefcase, Mail, TrendingUp, TrendingDown, Loader2, Clock } from 'lucide-react'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
+import { formatDistanceToNow } from 'date-fns'
+
+// Mock data - replace with real data from API
+const messageData = [
+  { name: 'Mon', email: 45, whatsapp: 32, sms: 18 },
+  { name: 'Tue', email: 52, whatsapp: 41, sms: 22 },
+  { name: 'Wed', email: 48, whatsapp: 38, sms: 20 },
+  { name: 'Thu', email: 61, whatsapp: 45, sms: 25 },
+  { name: 'Fri', email: 55, whatsapp: 42, sms: 23 },
+  { name: 'Sat', email: 38, whatsapp: 28, sms: 15 },
+  { name: 'Sun', email: 42, whatsapp: 31, sms: 17 },
+]
+
+const sequenceData = [
+  { name: 'Active', value: 45, color: 'hsl(var(--chart-1))' },
+  { name: 'Paused', value: 12, color: 'hsl(var(--chart-2))' },
+  { name: 'Completed', value: 89, color: 'hsl(var(--chart-3))' },
+  { name: 'Cancelled', value: 8, color: 'hsl(var(--chart-4))' },
+]
+
+interface MetricCardProps {
+  title: string
+  value: string | number
+  change: number
+  icon: React.ReactNode
+  description: string
+}
+
+function MetricCard({ title, value, change, icon, description }: MetricCardProps) {
+  const isPositive = change >= 0
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        <div className="text-muted-foreground">{icon}</div>
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold">{value}</div>
+        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+          {isPositive ? (
+            <TrendingUp className="size-3 text-green-500" />
+          ) : (
+            <TrendingDown className="size-3 text-red-500" />
+          )}
+          <span className={isPositive ? 'text-green-500' : 'text-red-500'}>
+            {Math.abs(change)}%
+          </span>
+          <span>{description}</span>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+interface Activity {
+  id: string
+  type: string
+  action: string
+  details: string
+  timestamp: Date
+  link: string | null
+}
+
+interface DashboardStats {
+  totalPeople: number
+  totalCompanies: number
+  activeProjects: number
+  messagesSent: number
+  changes: {
+    people: number
+    companies: number
+    projects: number
+    messages: number
+  }
+}
+
+export function AnalyticsDashboard() {
+  const [activities, setActivities] = useState<Activity[]>([])
+  const [stats, setStats] = useState<DashboardStats | null>(null)
+  const [loadingActivities, setLoadingActivities] = useState(true)
+  const [loadingStats, setLoadingStats] = useState(true)
+
+  useEffect(() => {
+    // Fetch recent activities
+    fetch('/api/dashboard/activity')
+      .then((res) => res.json())
+      .then((data) => {
+        setActivities(data.activities || [])
+        setLoadingActivities(false)
+      })
+      .catch((error) => {
+        console.error('Failed to load activities:', error)
+        setLoadingActivities(false)
+      })
+
+    // Fetch dashboard stats
+    fetch('/api/dashboard/stats')
+      .then((res) => res.json())
+      .then((data) => {
+        setStats(data.stats || null)
+        setLoadingStats(false)
+      })
+      .catch((error) => {
+        console.error('Failed to load stats:', error)
+        setLoadingStats(false)
+      })
+  }, [])
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+        <p className="text-muted-foreground">
+          Overview of your CRM automation performance
+        </p>
+      </div>
+
+      {/* Metrics Grid */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {loadingStats ? (
+          // Loading skeleton
+          Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Loading...</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Loader2 className="size-6 animate-spin text-muted-foreground" />
+              </CardContent>
+            </Card>
+          ))
+        ) : stats ? (
+          <>
+            <MetricCard
+              title="Total People"
+              value={stats.totalPeople.toLocaleString()}
+              change={stats.changes.people}
+              icon={<Users className="size-4" />}
+              description="from last month"
+            />
+            <MetricCard
+              title="Companies"
+              value={stats.totalCompanies.toLocaleString()}
+              change={stats.changes.companies}
+              icon={<Building2 className="size-4" />}
+              description="from last month"
+            />
+            <MetricCard
+              title="Active Projects"
+              value={stats.activeProjects.toLocaleString()}
+              change={stats.changes.projects}
+              icon={<Briefcase className="size-4" />}
+              description="from last month"
+            />
+            <MetricCard
+              title="Messages Sent"
+              value={stats.messagesSent.toLocaleString()}
+              change={stats.changes.messages}
+              icon={<Mail className="size-4" />}
+              description="from last week"
+            />
+          </>
+        ) : null}
+      </div>
+
+      {/* Charts Grid */}
+      <div className="grid gap-4 md:grid-cols-2">
+        {/* Message Activity Chart */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Message Activity</CardTitle>
+            <CardDescription>
+              Messages sent by channel over the last 7 days
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={messageData}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                <XAxis
+                  dataKey="name"
+                  className="text-xs"
+                  tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                />
+                <YAxis
+                  className="text-xs"
+                  tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'hsl(var(--card))',
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: '6px',
+                  }}
+                />
+                <Bar dataKey="email" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="whatsapp" fill="hsl(var(--chart-2))" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="sms" fill="hsl(var(--chart-3))" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Sequence Status Chart */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Sequence Status</CardTitle>
+            <CardDescription>
+              Distribution of outreach sequences by status
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex items-center justify-center">
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={sequenceData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={(props: { name?: string; percent?: number }) => `${props.name || ''} ${((props.percent || 0) * 100).toFixed(0)}%`}
+                  outerRadius={100}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {sequenceData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'hsl(var(--card))',
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: '6px',
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Recent Activity */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent Activity</CardTitle>
+          <CardDescription>Latest updates from your CRM system</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {loadingActivities ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="size-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : activities.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <Clock className="size-12 text-muted-foreground mb-2" />
+              <p className="text-sm text-muted-foreground">
+                No recent activity yet. Start by adding people, companies, or projects.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {activities.map((activity) => {
+                const content = (
+                  <div className="flex items-start justify-between border-b pb-4 last:border-0 last:pb-0">
+                    <div className="space-y-1 flex-1">
+                      <p className="text-sm font-medium">{activity.action}</p>
+                      <p className="text-sm text-muted-foreground">{activity.details}</p>
+                    </div>
+                    <span className="text-xs text-muted-foreground whitespace-nowrap ml-4">
+                      {formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true })}
+                    </span>
+                  </div>
+                )
+
+                return activity.link ? (
+                  <Link key={activity.id} href={activity.link} className="block hover:bg-accent/50 -mx-4 px-4 rounded transition-colors">
+                    {content}
+                  </Link>
+                ) : (
+                  <div key={activity.id}>{content}</div>
+                )
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
